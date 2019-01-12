@@ -16,7 +16,68 @@
 
 
 window.findNRooksSolution = function(n) {
-  var solution = undefined; //fixme
+  /*
+  input: n - number of rooks/dimensions
+  output: matrix of n arrays in array
+
+  new instance of board(n)
+  var rooksOnBoard = [];
+  
+  function:
+  for each row starting at last x
+    for each column starting at last y
+      togglePiece on board
+      apply hasAnyRowConflicts, hasAnyColConflicts()
+      if either are true, no bueno
+        togglePiece off board
+      else keep the piece there
+        push [x, y] to rooksonBoard
+        if n === rooksOnBoard.length
+          define solution as current board and return
+        recurse
+  
+  invoke traversing function
+  */
+
+  var boardNode = new Board({n: n});
+  var board = boardNode.rows();
+  var rooksOnBoard = [];
+  var solution; 
+
+  var traverseBoard = function() {
+    if (rooksOnBoard.length) {
+      var firstX = rooksOnBoard[rooksOnBoard.length - 1][0] + 1;
+      var firstY = rooksOnBoard[rooksOnBoard.length - 1][1] + 1;
+    } else {
+      var firstX = 0;
+      var firstY = 0;
+    }
+    //Base Case
+    if (n === rooksOnBoard.length) {
+      solution = boardNode.rows();
+      return;
+    //Recursive Case
+    } else {
+      for (var x = firstX; x < board.length; x++) {
+        for (var y = firstY; y < board.length; y++) {
+          boardNode.togglePiece(x, y);
+
+          if (!boardNode.hasAnyRowConflicts() && !boardNode.hasAnyColConflicts()) {
+            rooksOnBoard.push([x, y]);
+            traverseBoard();
+            if (solution) {
+              return;
+            }
+            rooksOnBoard.pop();
+          }
+
+          boardNode.togglePiece(x, y);
+        }
+      }
+    }
+  };
+
+  traverseBoard();
 
   console.log('Single solution for ' + n + ' rooks:', JSON.stringify(solution));
   return solution;
