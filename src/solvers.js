@@ -89,8 +89,23 @@ window.countNRooksSolutions = function(n) {
   var boardNode = new Board({n: n});
   var board = boardNode.rows();
   var rooksOnBoard = [];
+  var yPieces = [];
+  var nIsEven = n % 2 === 0;
+  var middle = Math.floor(board.length/2);
+  var oddCase = false;
 
+  if (n === 0 || n === 1) {
+    return 1;
+  }
+  
   var traverseBoard = function() {
+    //Base Case
+    if (n === rooksOnBoard.length) {
+      solutionCount++;
+      return;
+    }
+
+    //Recursive Case
     if (rooksOnBoard.length) {
       var firstX = rooksOnBoard[rooksOnBoard.length - 1][0] + 1;
       var firstY = 0;
@@ -98,29 +113,56 @@ window.countNRooksSolutions = function(n) {
       var firstX = 0;
       var firstY = 0;
     }
-    //Base Case
-    if (n === rooksOnBoard.length) {
-      solutionCount++;
-      return;
-    //Recursive Case
-    } else {
-      for (var x = firstX; x < board.length; x++) {
-        for (var y = firstY; y < board.length; y++) {
-          boardNode.togglePiece(x, y);
+    
+    
+    for (var x = firstX; x < board.length; x++) {
+      if (nIsEven && x === 0) {
+        var yLimit = board.length / 2;
+      } else { yLimit = board.length; }
+      // } else if (!nIsEven && rooksOnBoard[0]) {
+      //   if (rooksOnBoard[0][1] === middle) {
+      //     oddCase = true;
+      //     if (x === 1) {
+      //       var yLimit = middle;
+      //     } else { var yLimit = board.length; }
+      //   }
+      // } else { var yLimit = board.length; }
 
-          if (!boardNode.hasAnyRowConflicts() && !boardNode.hasAnyColConflicts()) {
-            rooksOnBoard.push([x, y]);
-            traverseBoard();
-            rooksOnBoard.pop();
-          }
-          
-          boardNode.togglePiece(x, y);
+      for (var y = firstY; y < yLimit; y++) {
+        if (rooksOnBoard.length === 0 && x > 0) {
+          return;
         }
+        
+        var hasYConflicts = false;
+        rooksOnBoard.forEach(function(elem) {
+          if (elem[1] === y) {
+            hasYConflicts = true;
+          }
+        });
+
+        if (!hasYConflicts) {
+          // boardNode.togglePiece(x, y);
+
+          // if (!boardNode.hasAnyRowConflicts() && !boardNode.hasAnyColConflicts()) {
+          rooksOnBoard.push([x, y]);
+          yPieces.push(y);
+          
+          traverseBoard();
+          rooksOnBoard.pop();
+          // }
+          
+          // boardNode.togglePiece(x, y);
+        }
+        
       }
     }
+    
   };
   
   traverseBoard();
+  if (nIsEven || oddCase) {
+    solutionCount *= 2;
+  }
   
   console.log('Number of solutions for ' + n + ' rooks:', solutionCount);
   return solutionCount;
