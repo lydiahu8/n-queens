@@ -226,8 +226,65 @@ window.countNQueensSolutions = function(n) {
   var boardNode = new Board({n: n});
   var board = boardNode.rows();
   var queensOnBoard = [];
+  var yPieces = [];
+  var nIsEven = n % 2 === 0;
+  var middle = Math.floor(board.length/2);
+  var oddCase = false;
+
+  if (n === 0 || n === 1) {
+    return 1;
+  } else if (n === 2 || n === 3) {
+    return 0;
+  }
+
+  var hasMajorDiagonalConflictAt = function(firstRowIndex) {
+    var counter = 0;
+    for (var i = 0; i < board.length; i++) {
+      var colIndex = firstRowIndex + i;
+      if (board[i][colIndex]) {
+        counter++;
+      }
+    }
+    return counter > 1;
+  };
+
+  var hasAnyMajorDiagonalConflicts = function() {
+    for (var i = 1 - board.length; i < board.length; i++) {
+      if (hasMajorDiagonalConflictAt(i)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  var hasMinorDiagonalConflictAt = function(firstRowIndex) {
+    var counter = 0;
+    for (var i = 0; i < board.length; i++) {
+      var colIndex = firstRowIndex - i;
+      if (board[i][colIndex]) {
+        counter++;
+      }
+    }
+    return counter > 1;
+  };
+
+  var hasAnyMinorDiagonalConflicts = function() {
+    for (var i = 0; i < (board.length * 2 - 1); i++) {
+      if (hasMinorDiagonalConflictAt(i)) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   var traverseBoard = function() {
+    //Base Case
+    if (n === queensOnBoard.length) {
+      solutionCount++;
+      return;
+    }
+
+    //Recursive Case
     if (queensOnBoard.length) {
       var firstX = queensOnBoard[queensOnBoard.length - 1][0] + 1;
       var firstY = 0;
@@ -235,29 +292,55 @@ window.countNQueensSolutions = function(n) {
       var firstX = 0;
       var firstY = 0;
     }
-    //Base Case
-    if (n === queensOnBoard.length) {
-      solutionCount++;
-      return;
-    //Recursive Case
-    } else {
-      for (var x = firstX; x < board.length; x++) {
-        for (var y = firstY; y < board.length; y++) {
+    
+    
+    for (var x = firstX; x < board.length; x++) {
+      if (nIsEven && x === 0) {
+        var yLimit = board.length / 2;
+      } else { yLimit = board.length; }
+      // } else if (!nIsEven && queensOnBoard[0]) {
+      //   if (queensOnBoard[0][1] === middle) {
+      //     oddCase = true;
+      //     if (x === 1) {
+      //       var yLimit = middle;
+      //     } else { var yLimit = board.length; }
+      //   }
+      // } else { var yLimit = board.length; }
+
+      for (var y = firstY; y < yLimit; y++) {
+        if (queensOnBoard.length === 0 && x > 0) {
+          return;
+        }
+        
+        var hasYConflicts = false;
+        queensOnBoard.forEach(function(elem) {
+          if (elem[1] === y) {
+            hasYConflicts = true;
+          }
+        });
+
+        if (!hasYConflicts) {
           boardNode.togglePiece(x, y);
 
-          if (!boardNode.hasAnyRowConflicts() && !boardNode.hasAnyColConflicts() && !boardNode.hasAnyMajorDiagonalConflicts() && !boardNode.hasAnyMinorDiagonalConflicts()) {
+          if (!hasAnyMajorDiagonalConflicts() && !hasAnyMinorDiagonalConflicts()) {
             queensOnBoard.push([x, y]);
+            yPieces.push(y);
+            
             traverseBoard();
             queensOnBoard.pop();
           }
           
           boardNode.togglePiece(x, y);
         }
+        
       }
     }
   };
   
   traverseBoard();
+  if (nIsEven || oddCase) {
+    solutionCount *= 2;
+  }
 
   console.log('Number of solutions for ' + n + ' queens:', solutionCount);
   return solutionCount;
